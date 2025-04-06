@@ -1,4 +1,3 @@
-import pygame
 import math
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -8,7 +7,6 @@ L1 = 10  # Length of first arm link
 L2 = 10  # Length of second arm link
 
 # Initialize pygame
-pygame.init()
 
 # Set up the plot
 fig, ax = plt.subplots()
@@ -26,6 +24,8 @@ step_size = 0.01
 
 # Inverse Kinematics for 2-DOF arm
 def inverse_kinematics(x, y, L1, L2):
+    # TODO: Limit the angle to a maximum and minimum (avoid collisions and overstretching)
+    # TODO: Limit the x and y input values so that they're strictly confined to a maximum and minimum (eliminate delays in motion when the stretch limit has been reached)
     # Solve for theta2 (second joint)
     cos_theta2 = (x**2 + y**2 - L1**2 - L2**2) / (2 * L1 * L2)
     if cos_theta2 < -1 or cos_theta2 > 1:  # Check for valid angles
@@ -57,7 +57,7 @@ def update_frame(i):
     if theta1 is None or theta2 is None:
         # If the position is out of reach, keep the arm in the last valid position
         # return line, point
-        return line
+        return line,
 
     # Calculate the position of the end effector
     x1 = L1 * math.cos(math.radians(theta1))
@@ -71,51 +71,35 @@ def update_frame(i):
     # return line, point
     return line,
 
-# Main loop: Read key events and control arm
-def handle_keyboard_input():
-    global x_input, y_input
-    
-    # pygame.event.pump()
-    for event in pygame.event.get():
-        print(f"event: {event.type}")
-        if event.type == pygame.QUIT:
-            running = False
-            print("quit")
-        
-        if event.type == pygame.KEYDOWN:
-            print("key pressed")
+def on_key_press(event):
+    global x_input, y_input # Use global variables
 
-    # Check for key events
-    keys = pygame.key.get_pressed()
-    # print("check keys")
-    
-    if keys[pygame.K_LEFT]:  # Move left (decrease x)
-        x_input -= step_size
-        print("left")
-    if keys[pygame.K_RIGHT]:  # Move right (increase x)
-        x_input += step_size
-        print("right")
-    if keys[pygame.K_UP]:  # Move up (increase y)
+    if (event.key == 'up'):
         y_input += step_size
-        print("up")
-    if keys[pygame.K_DOWN]:  # Move down (decrease y)
+    if (event.key == 'down'):
         y_input -= step_size
-        print("down")
-    
+    if (event.key == 'left'):
+        x_input -= step_size
+    if (event.key == 'right'):
+        x_input += step_size
+    if (event.key == 'x'):
+        pass
+
     # Clamp the values to prevent the arm from going out of bounds
     x_input = max(-1.0, min(1.0, x_input))
     y_input = max(-1.0, min(1.0, y_input))
 
+    print(f"x: {x_input}, y: {y_input}")
+
+
 # Animation function
 def animate(i):
-    handle_keyboard_input()  # Check for key inputs
+    # handle_keyboard_input()  # Check for key inputs
     return update_frame(i)
 
+fig.canvas.mpl_connect('key_press_event', on_key_press)
 # Animation setup
 ani = FuncAnimation(fig, animate, frames=2000000, interval=50, blit=True)
 
 # Show the plot
 plt.show()
-
-# Close pygame when done
-pygame.quit()
