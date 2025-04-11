@@ -33,8 +33,7 @@ Axis_t activeAxis = AXIS_NONE;
 long keyPressedMillis = 0, actBlinkMillis = 0;
 
 void setup() {
-  // Serial.begin(115200);
-  Serial.begin(921600);
+  Serial.begin(115200);
 
   // baseServo.attach(2);
   // link1Servo.attach(3);
@@ -49,27 +48,17 @@ void setup() {
   pinMode(BASE_SERVO_PIN, OUTPUT);
   pinMode(LINK1_SERVO_PIN, OUTPUT);
   pinMode(LINK2_SERVO_PIN, OUTPUT);
-  uint8_t timerTop = 1250;
+  int timerTop = 1250;
 
   // Set Fast PWM mode with TOP = ICR3
   TCCR3A |= (1 << WGM33) | (1 << WGM32);
   TCCR3B |= (1 << WGM31);
 
-  // Set Fast PWM mode with TOP = OCR0A
-  TCCR0A |= (1 << WGM00) | (1 << WGM01);
-  TCCR0B |= (1 << WGM02);
-
   // Clear 0C3A on compare match, set at BOTTOM (non-inverting mode)
   TCCR3A |= (1 << COM3A1) | (1 << COM3B1) | (1 << COM3C1);
 
-  // Clear OCR0A on compare match, set at BOTTOM
-  TCCR0A |= (1 << COM0A1);
-
   // Set TOP value
   ICR3 = timerTop;
-
-  // Set TOP value
-  OCR0A = 255;
 
   // Set duty cycle
   // OCR3B = 94;
@@ -77,14 +66,8 @@ void setup() {
   OCR3B = DUTY_MIN;
   OCR3C = DUTY_MIN;
 
-  // Set duty cycle
-  OCR0A = 127;
-
   // Start timer with prescaler 256
   TCCR3B |= (1 << CS32);
-
-  // Start timer with prescaler 1024
-  TCCR0B |= (1 << CS00) | (1 << CS02);
 
   EICRA |= (1 << ISC21);
   EIMSK |= (1 << INT0) | (1 << INT1) | (1 << INT2);
@@ -133,10 +116,11 @@ void loop() {
     }
   }
 
-  if ((millis() - actBlinkMillis) > 200)
+  if ((millis() - actBlinkMillis) > 2000)
   {
     actBlinkMillis = millis();
     // digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    Serial.println("TCCR3A: " + String(TCCR3A) + ", TCCR3B: " + String(TCCR3B) + ", ICR3: " + String(ICR3));
   }
 
 }
